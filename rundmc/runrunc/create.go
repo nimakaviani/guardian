@@ -26,7 +26,6 @@ func NewCreator(runcPath string, commandRunner command_runner.CommandRunner) *Cr
 func (c *Creator) Create(log lager.Logger, bundlePath, id string, _ garden.ProcessIO) (theErr error) {
 	log = log.Session("create", lager.Data{"bundle": bundlePath})
 
-	log.Info("creating")
 	defer log.Info("finished")
 
 	logFilePath := filepath.Join(bundlePath, "create.log")
@@ -34,7 +33,18 @@ func (c *Creator) Create(log lager.Logger, bundlePath, id string, _ garden.Proce
 
 	cmd := exec.Command(c.runcPath, "--debug", "--log", logFilePath, "create", "--bundle", bundlePath, "--pid-file", pidFilePath, id)
 
+	log.Info("creating", lager.Data{
+		"runc":        c.runcPath,
+		"bundlePath":  bundlePath,
+		"id":          id,
+		"logPath":     logFilePath,
+		"pidFilePath": pidFilePath,
+	})
+
 	err := c.commandRunner.Run(cmd)
+	if err != nil {
+		return err
+	}
 
 	defer func() {
 		theErr = processLogs(log, logFilePath, err)
