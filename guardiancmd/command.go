@@ -620,14 +620,14 @@ func (cmd *GuardianCommand) wireContainerizer(log lager.Logger, depotPath, iodae
 		WithResources(&specs.Resources{Devices: append([]specs.DeviceCgroup{denyAll}, allowedDevices...)}).
 		WithRootFS(defaultRootFSPath).
 		WithDevices(fuseDevice).
-		WithProcess(baseProcess).
-		WithMaskedPaths(defaultMaskedPaths())
+		WithProcess(baseProcess)
 
 	unprivilegedBundle := baseBundle.
 		WithNamespace(goci.UserNamespace).
 		WithUIDMappings(idMappings...).
 		WithGIDMappings(idMappings...).
-		WithMounts(unprivilegedMounts...)
+		WithMounts(unprivilegedMounts...).
+		WithMaskedPaths(defaultMaskedPaths())
 
 	unprivilegedBundle.Spec.Linux.Seccomp = seccomp
 	if appArmorProfile != "" {
