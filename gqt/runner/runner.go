@@ -73,7 +73,7 @@ func init() {
 	}
 }
 
-func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, supplyDefaultRootfs bool, argv ...string) GardenRunner {
+func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, rootfs string, argv ...string) GardenRunner {
 	r := GardenRunner{}
 
 	r.Network = "unix"
@@ -89,7 +89,7 @@ func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, supplyDefaultRootf
 
 	MustMountTmpfs(r.GraphPath)
 
-	r.Cmd = cmd(r.TmpDir, r.DepotDir, r.GraphPath, r.Network, r.Addr, bin, initBin, nstarBin, dadooBin, TarBin, supplyDefaultRootfs, argv...)
+	r.Cmd = cmd(r.TmpDir, r.DepotDir, r.GraphPath, r.Network, r.Addr, bin, initBin, nstarBin, dadooBin, TarBin, rootfs, argv...)
 	r.Cmd.Env = append(os.Environ(), fmt.Sprintf("TMPDIR=%s", r.TmpDir))
 
 	for i, arg := range r.Cmd.Args {
@@ -112,8 +112,8 @@ func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, supplyDefaultRootf
 	return r
 }
 
-func Start(bin, initBin, nstarBin, dadooBin string, supplyDefaultRootfs bool, argv ...string) *RunningGarden {
-	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, supplyDefaultRootfs, argv...)
+func Start(bin, initBin, nstarBin, dadooBin string, rootfs string, argv ...string) *RunningGarden {
+	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, argv...)
 
 	r := &RunningGarden{
 		runner:   runner,
@@ -177,7 +177,7 @@ func (r *RunningGarden) Stop() error {
 	return err
 }
 
-func cmd(tmpdir, depotDir, graphPath, network, addr, bin, initBin, nstarBin, dadooBin, tarBin string, supplyDefaultRootfs bool, argv ...string) *exec.Cmd {
+func cmd(tmpdir, depotDir, graphPath, network, addr, bin, initBin, nstarBin, dadooBin, tarBin string, rootfs string, argv ...string) *exec.Cmd {
 	Expect(os.MkdirAll(tmpdir, 0755)).To(Succeed())
 
 	snapshotsPath := filepath.Join(tmpdir, "snapshots")
@@ -210,8 +210,8 @@ func cmd(tmpdir, depotDir, graphPath, network, addr, bin, initBin, nstarBin, dad
 		gardenArgs = appendDefaultFlag(gardenArgs, "--bind-socket", addr)
 	}
 
-	if supplyDefaultRootfs {
-		gardenArgs = appendDefaultFlag(gardenArgs, "--default-rootfs", RootFSPath)
+	if rootfs != "" {
+		gardenArgs = appendDefaultFlag(gardenArgs, "--default-rootfs", rootfs)
 	}
 
 	gardenArgs = appendDefaultFlag(gardenArgs, "--depot", depotDir)

@@ -97,7 +97,8 @@ func TestGqt(t *testing.T) {
 }
 
 func startGarden(argv ...string) *runner.RunningGarden {
-	return runner.Start(gardenBin, initBin, nstarBin, dadooBin, true, argv...)
+	rootfs := os.Getenv("GARDEN_TEST_ROOTFS")
+	return runner.Start(gardenBin, initBin, nstarBin, dadooBin, rootfs, argv...)
 }
 
 func restartGarden(client *runner.RunningGarden, argv ...string) {
@@ -107,5 +108,5 @@ func restartGarden(client *runner.RunningGarden, argv ...string) {
 }
 
 func startGardenWithoutDefaultRootfs(argv ...string) *runner.RunningGarden {
-	return runner.Start(gardenBin, initBin, nstarBin, dadooBin, false, argv...)
+	return runner.Start(gardenBin, initBin, nstarBin, dadooBin, "", argv...)
 }
