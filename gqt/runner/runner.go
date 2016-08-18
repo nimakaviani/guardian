@@ -28,7 +28,6 @@ import (
 
 const MNT_DETACH = 0x2
 
-var RootFSPath = os.Getenv("GARDEN_TEST_ROOTFS")
 var DataDir string
 var TarBin = os.Getenv("GARDEN_TAR_PATH")
 
@@ -73,7 +72,7 @@ func init() {
 	}
 }
 
-func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, rootfs string, argv ...string) GardenRunner {
+func NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin string, argv ...string) GardenRunner {
 	r := GardenRunner{}
 
 	r.Network = "unix"
@@ -89,7 +88,7 @@ func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, rootfs string, arg
 
 	MustMountTmpfs(r.GraphPath)
 
-	r.Cmd = cmd(r.TmpDir, r.DepotDir, r.GraphPath, r.Network, r.Addr, bin, initBin, nstarBin, dadooBin, TarBin, rootfs, argv...)
+	r.Cmd = cmd(r.TmpDir, r.DepotDir, r.GraphPath, r.Network, r.Addr, bin, initBin, nstarBin, dadooBin, tarBin, rootfs, argv...)
 	r.Cmd.Env = append(os.Environ(), fmt.Sprintf("TMPDIR=%s", r.TmpDir))
 
 	for i, arg := range r.Cmd.Args {
@@ -112,8 +111,8 @@ func NewGardenRunner(bin, initBin, nstarBin, dadooBin string, rootfs string, arg
 	return r
 }
 
-func Start(bin, initBin, nstarBin, dadooBin string, rootfs string, argv ...string) *RunningGarden {
-	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, argv...)
+func Start(bin, initBin, nstarBin, dadooBin, rootfs, tarBin string, argv ...string) *RunningGarden {
+	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin, argv...)
 
 	r := &RunningGarden{
 		runner:   runner,
