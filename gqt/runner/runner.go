@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -72,12 +73,11 @@ func init() {
 	}
 }
 
-func NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin string, argv ...string) GardenRunner {
+func NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin, network, address string, argv ...string) GardenRunner {
 	r := GardenRunner{}
 
-	r.Network = "unix"
-	r.Addr = fmt.Sprintf("/tmp/garden_%d.sock", GinkgoParallelNode())
-
+	r.Network = network
+	r.Addr = address
 	r.TmpDir = filepath.Join(
 		os.TempDir(),
 		fmt.Sprintf("test-garden-%d", ginkgo.GinkgoParallelNode()),
@@ -112,7 +112,7 @@ func NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin string, ar
 }
 
 func Start(bin, initBin, nstarBin, dadooBin, rootfs, tarBin string, argv ...string) *RunningGarden {
-	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin, argv...)
+	runner := NewGardenRunner(bin, initBin, nstarBin, dadooBin, rootfs, tarBin, "unix", fmt.Sprintf("/tmp/garden_%d.sock", GinkgoParallelNode()), argv...)
 
 	r := &RunningGarden{
 		runner:   runner,
@@ -204,7 +204,8 @@ func cmd(tmpdir, depotDir, graphPath, network, addr, bin, initBin, nstarBin, dad
 
 	switch network {
 	case "tcp":
-		gardenArgs = appendDefaultFlag(gardenArgs, "--bind-ip", addr)
+		gardenArgs = appendDefaultFlag(gardenArgs, "--bind-ip", strings.Split(addr, ":")[0])
+		gardenArgs = appendDefaultFlag(gardenArgs, "--bind-port", strings.Split(addr, ":")[1])
 	case "unix":
 		gardenArgs = appendDefaultFlag(gardenArgs, "--bind-socket", addr)
 	}
